@@ -52,4 +52,30 @@ The project reproduces issue https://github.com/spring-projects/spring-boot/issu
     
     ```
     
-Problem only reproduces in case of using spring boot `2.1.2.RELEASE` together with `spring-boot-devtools`
+The problem occurs with a combination of spring boot `2.1.2.RELEASE` and `spring-boot-devtools`
+
+Removing the following bean:
+
+```java
+@Bean
+public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+        final ConnectionFactory rabbitConnectionFactory,
+        final SimpleRabbitListenerContainerFactoryConfigurer configurer,
+        final SecurityContextPopulatingListenerAdvice advice) {
+    final SimpleRabbitListenerContainerFactory listenerContainerFactory
+            = new SimpleRabbitListenerContainerFactory();
+    configurer.configure(listenerContainerFactory, rabbitConnectionFactory);
+    final Advice[] adviceChain = listenerContainerFactory.getAdviceChain();
+    if (Objects.isNull(adviceChain)) {
+        listenerContainerFactory.setAdviceChain(advice);
+    } else {
+        listenerContainerFactory.setAdviceChain(
+                Stream.concat(Stream.of(adviceChain), Stream.of(advice)).toArray(Advice[]::new)
+        );
+    }
+    return listenerContainerFactory;
+}
+
+```
+
+will also fix the problem (actially commenting `listenerContainerFactory.setAdviceChain(advice)` fixes the problem)
