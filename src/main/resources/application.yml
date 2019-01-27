@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: spring-boot-demo
+
+server:
+  port: 8090
+  servlet:
+    contextPath: /demo
+
